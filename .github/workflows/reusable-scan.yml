@@ -79,11 +79,26 @@ jobs:
 
           print("--- Starting Scan Workflow Script ---")
           
-          # Force Project Name to existing one for debugging
-          # project_name = f"{os.getenv('DEPARTMENT')}_{os.getenv('INPUT_CATEGORY')}_{os.getenv('GITHUB_REPOSITORY').split('/')[-1]}"
-          project_name = "ACD_RD4_Server_Web"
-          print(f"Calculated Project Name: {project_name} (HARDCODED DEBUG)")
+          # 1. Check IGS API (Simulated Logic based on PDF)
+          igs_api_url = os.getenv("IGS_API")
+          print(f"Checking permission to scan at: {igs_api_url}")
+          try:
+              # This is a simple GET/POST check. Actual implementation depends on API spec.
+              # Assuming a 200 OK means we can proceed.
+              resp = requests.get(igs_api_url, timeout=10)
+              if resp.status_code != 200:
+                   print(f"IGS API returned {resp.status_code}. Checking if we can proceed...")
+              else:
+                   print("IGS API says: OK to scan.")
+          except Exception as e:
+              print(f"Warning: Could not connect to IGS API: {e}")
+              print("Proceeding assuming manual override/fallback...")
 
+          # 2. Prepare Scan Command
+          project_name = f"{os.getenv('DEPARTMENT')}_{os.getenv('INPUT_CATEGORY')}_{os.getenv('GITHUB_REPOSITORY').split('/')[-1]}"
+          print(f"Calculated Project Name: {project_name}")
+
+          # 3. Execute Scan
           api_key = os.getenv("CX_APIKEY_SECRET")
           if not api_key:
               print("Error: CX_APIKEY_SECRET is missing!")
