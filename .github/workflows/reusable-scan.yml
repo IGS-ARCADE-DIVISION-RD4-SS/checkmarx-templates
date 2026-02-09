@@ -53,16 +53,17 @@ jobs:
           rm /tmp/checkmarx-cli.tar.gz
           cx version
 
-      - name: Configure Checkmarx CLI
+      - name: Configure Checkmarx CLI (Basic)
+        # We only set URIs here, NOT the API key to avoid config file issues
         env:
-          CX_REFRESH_TOKEN: ${{ secrets.SSC_TOKEN }}
+          CX_BASE_URI: 'https://sng.ast.checkmarx.net'
+          CX_BASE_AUTH_URI: 'https://sng.iam.checkmarx.net'
+          CX_TENANT: 'mssp-gss-cpo12igs'
         run: |
-          # We set configuration, but also provide ENV var later just in case
-          cx configure set --prop-name cx_apikey --prop-value "$CX_REFRESH_TOKEN"
           cx configure set --prop-name cx_base_uri --prop-value "$CX_BASE_URI"
           cx configure set --prop-name cx_base_auth_uri --prop-value "$CX_BASE_AUTH_URI"
           cx configure set --prop-name cx_tenant --prop-value "$CX_TENANT"
-          echo "Checkmarx CLI configured successfully"
+          echo "Checkmarx CLI configured (Base URLs only)"
 
       - name: Verify Python
         run: python3 --version
@@ -71,8 +72,8 @@ jobs:
         shell: python3 {0}
         env:
           GITHUB_TOKEN: ${{ secrets.ORG_ACTION_RUN_PAT }}
-          # Important: Inject Token as CX_APIKEY environment variable for the CLI to pick up
-          CX_APIKEY: ${{ secrets.SSC_TOKEN }}
+          # Pass Token to Python script env
+          CX_APIKEY_SECRET: ${{ secrets.SSC_TOKEN }}
           DEPARTMENT: ${{ inputs.department }}
           INPUT_CATEGORY: ${{ inputs.category }}
         run: |
@@ -100,21 +101,27 @@ jobs:
           print(f"Calculated Project Name: {project_name}")
 
           # 3. Execute Scan
-          # Note: The original script seems to have complex logic for queuing. 
-          # Here we implement the direct scan command using the CLI we just installed.
-          
+          # FIX: Pass API Key directly in the command to ensure authentication
+          api_key = os.getenv("CX_APIKEY_SECRET")
+          if not api_key:
+              print("Error: CX_APIKEY_SECRET is missing!")
+              sys.exit(1)
+
           scan_cmd = [
               "cx", "scan", "create",
               "--project-name", project_name,
               "--sast-preset-name", "Checkmarx Default",
               "--branch", "main", 
               "-s", ".", 
+              "--apikey", api_key,
               "--async" # Run asynchronously
           ]
           
-          print(f"Executing command: {' '.join(scan_cmd)}")
+          # Mask the key in the print output for security
+          display_cmd = list(scan_cmd)
+          display_cmd[display_cmd.index("--apikey") + 1] = "***"
+          print(f"Executing command: {' '.join(display_cmd)}")
           
           # Enable actual scanning
-          # We pass os.environ to ensure CX_APIKEY is available to the subprocess
-          subprocess.run(scan_cmd, check=True, env=os.environ)
+          subprocess.run(scan_cmd, check=True)
           print("Scan command executed.")
