@@ -101,14 +101,16 @@ jobs:
           # Note: The original script seems to have complex logic for queuing. 
           # Here we implement the direct scan command using the CLI we just installed.
           
+          # FIX: Removing --agent GitHub as it seems to conflict with --source or is not needed for direct upload
+          # Also ensuring we use -s . to upload current directory
+          
           scan_cmd = [
               "cx", "scan", "create",
               "--project-name", project_name,
               "--sast-preset-name", "Checkmarx Default",
-              "--branch", "main", # Or dynamic branch
-              "--source", ".",
-              "--agent", "GitHub",
-              "--async", # Run asynchronously or remove to wait
+              "--branch", "main", 
+              "--source", ".", 
+              "--async", # Run asynchronously
               "--format", "json"
           ]
           
