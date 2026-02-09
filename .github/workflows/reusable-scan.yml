@@ -95,8 +95,9 @@ jobs:
               print("Proceeding assuming manual override/fallback...")
 
           # 2. Prepare Scan Command
-          project_name = f"{os.getenv('DEPARTMENT')}_{os.getenv('INPUT_CATEGORY')}_{os.getenv('GITHUB_REPOSITORY').split('/')[-1]}"
-          print(f"Calculated Project Name: {project_name}")
+          # FIX: Hardcoded to ACD_RD4_Server_Web as requested by user to consolidate all scans
+          project_name = "ACD_RD4_Server_Web"
+          print(f"Project Name (Fixed): {project_name}")
 
           # 3. Execute Scan
           api_key = os.getenv("CX_APIKEY_SECRET")
