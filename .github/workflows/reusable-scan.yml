@@ -57,6 +57,7 @@ jobs:
         env:
           CX_REFRESH_TOKEN: ${{ secrets.SSC_TOKEN }}
         run: |
+          # We set configuration, but also provide ENV var later just in case
           cx configure set --prop-name cx_apikey --prop-value "$CX_REFRESH_TOKEN"
           cx configure set --prop-name cx_base_uri --prop-value "$CX_BASE_URI"
           cx configure set --prop-name cx_base_auth_uri --prop-value "$CX_BASE_AUTH_URI"
@@ -70,7 +71,8 @@ jobs:
         shell: python3 {0}
         env:
           GITHUB_TOKEN: ${{ secrets.ORG_ACTION_RUN_PAT }}
-          CX_REFRESH_TOKEN: ${{ secrets.SSC_TOKEN }}
+          # Important: Inject Token as CX_APIKEY environment variable for the CLI to pick up
+          CX_APIKEY: ${{ secrets.SSC_TOKEN }}
           DEPARTMENT: ${{ inputs.department }}
           INPUT_CATEGORY: ${{ inputs.category }}
         run: |
@@ -101,8 +103,6 @@ jobs:
           # Note: The original script seems to have complex logic for queuing. 
           # Here we implement the direct scan command using the CLI we just installed.
           
-          # FIX: Removed --format as it is not supported in create
-          
           scan_cmd = [
               "cx", "scan", "create",
               "--project-name", project_name,
@@ -115,5 +115,6 @@ jobs:
           print(f"Executing command: {' '.join(scan_cmd)}")
           
           # Enable actual scanning
-          subprocess.run(scan_cmd, check=True)
+          # We pass os.environ to ensure CX_APIKEY is available to the subprocess
+          subprocess.run(scan_cmd, check=True, env=os.environ)
           print("Scan command executed.")
