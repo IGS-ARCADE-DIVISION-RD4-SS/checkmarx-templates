@@ -114,8 +114,6 @@ jobs:
           
           print(f"Executing command: {' '.join(scan_cmd)}")
           
-          # In a real run, we would uncomment the following line:
-          # subprocess.run(scan_cmd, check=True)
-          
-          print("Scan command constructed. (Dry Run for Template setup)")
-          print("To enable actual scanning, uncomment subprocess.run in the template.")
+          # Enable actual scanning
+          subprocess.run(scan_cmd, check=True)
+          print("Scan command executed.")
