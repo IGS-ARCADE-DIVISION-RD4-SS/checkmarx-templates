@@ -101,7 +101,7 @@ jobs:
           # Note: The original script seems to have complex logic for queuing. 
           # Here we implement the direct scan command using the CLI we just installed.
           
-          # FIX: Use -s instead of --source
+          # FIX: Removed --format as it is not supported in create
           
           scan_cmd = [
               "cx", "scan", "create",
@@ -109,8 +109,7 @@ jobs:
               "--sast-preset-name", "Checkmarx Default",
               "--branch", "main", 
               "-s", ".", 
-              "--async", # Run asynchronously
-              "--format", "json"
+              "--async" # Run asynchronously
           ]
           
           print(f"Executing command: {' '.join(scan_cmd)}")
