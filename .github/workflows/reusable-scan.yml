@@ -95,9 +95,14 @@ jobs:
               print("Proceeding assuming manual override/fallback...")
 
           # 2. Prepare Scan Command
-          # FIX: Hardcoded to ACD_RD4_Server_Web as requested by user to consolidate all scans
           project_name = "ACD_RD4_Server_Web"
           print(f"Project Name (Fixed): {project_name}")
+
+          # Get Repo Name for Tagging
+          # GITHUB_REPOSITORY is like "Owner/RepoName"
+          full_repo_name = os.getenv('GITHUB_REPOSITORY', 'Unknown_Repo')
+          repo_name = full_repo_name.split('/')[-1]
+          print(f"Repository Name: {repo_name}")
 
           # 3. Execute Scan
           api_key = os.getenv("CX_APIKEY_SECRET")
@@ -112,7 +117,8 @@ jobs:
               "--branch", "main", 
               "-s", ".", 
               "--apikey", api_key,
-              "--async" 
+              "--async",
+              "--tags", f"Repo:{repo_name}" # Add Repo Name as Tag
           ]
           
           display_cmd = list(scan_cmd)
